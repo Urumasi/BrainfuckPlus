@@ -96,8 +96,9 @@ void _BFEngine<T>::process(const char *prog){
 				pop();//callstack.pop_back();
 			break;
 			case 'D': // debug
-				std::cout << "\nPtr: " << ptr << "\nCPtr: " << cptr << "\nCall stack size: " << callstack.size() << "\n\n";
+				std::cout << "\nPtr: " << static_cast<unsigned long long int>(ptr) << "\nCPtr: " << cptr << "\nCall stack size: " << callstack.size() << std::endl;
 				printMemBlocks();
+				std::cout << std::endl;
 			break;
 		}
 		cptr++;

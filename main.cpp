@@ -22,7 +22,7 @@ int main(int argc, char* argv[]){
 		engine->process(str.c_str());
 		delete engine;
 	}catch(std::logic_error e){
-		std::cerr << e.what();
+		std::cerr << e.what() << std::endl;
 		return 1;
 	}
 	return 0;

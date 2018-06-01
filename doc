@@ -20,4 +20,7 @@ Memory is a loop, ammount of cells = 2^bits of operation
 [ Start of loop, if value is 0, jump to end of loop
 ] End of loop, if value is nonzero, jump to start of loop
 & Jump, set pointer to value
+@ Call, set cpointer to value, push to stack
+$ Return, set cpointer to stack head, pop stack
+^ Pop, manually pop call stack
 D Print debug information
