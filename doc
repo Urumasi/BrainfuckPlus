@@ -1,0 +1,23 @@
+Brainfuck+
+
+Usage:
+bf+ [options]
+
+Options:
+	-8	Run in 8bit mode (unsigned char) Default.
+	-16	Run in 16bit mode (short unsigned int)
+	-32 Run in 32bit mode (long unsigned int)
+	-64	Run in 64bit mode (long long unsigned int)
+
+Memory is a loop, ammount of cells = 2^bits of operation
+
+> Increment pointer
+< Decrement pointer
++ Increment value
+- Decrement value
+. Ouput value as char
+, Input value as char
+[ Start of loop, if value is 0, jump to end of loop
+] End of loop, if value is nonzero, jump to start of loop
+& Jump, set pointer to value
+D Print debug information
