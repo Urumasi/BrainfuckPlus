@@ -20,115 +20,145 @@ _BFEngine<T>::_BFEngine(int bs){
 	head = new MemoryTree<T>();
 	// If head has no children that we can allocate()
 	if(size*8==bs)
-			head->data = new T[1<<blocksize];
-		cacheValid = false;
-		blocksize = bs;
-	}
+		head->data = new T[1<<blocksize];
+	cacheValid = false;
+	blocksize = bs;
+}
 
-	template <class T>
-	_BFEngine<T>::~_BFEngine(){
-		deleteTree(head);
-	}
+template <class T>
+_BFEngine<T>::~_BFEngine(){
+	deleteTree(head);
+}
 
-	template <class T>
-	void _BFEngine<T>::process(const char *prog){
-		cptr = 0;
-		T o;
-		unsigned char in;
-		while(prog[cptr]){ // Run until \0
-			char c = prog[cptr];
-			switch(c){
-				case '>':
-					ptr++;
-				break;
-				case '<':
-					ptr--;
-				break;
-				case '+':
-					set(ptr, get(ptr)+1);
-				break;
-				case '-':
-					set(ptr, get(ptr)-1);
-				break;
-				case '.':
-					o = get(ptr);
-					std::cout << *reinterpret_cast<char*>(&o);
-				break;
-				case ',':
-					std::cin >> in;
-					set(ptr, static_cast<T>(in));
-				break;
-				case '[':
-					if(get(ptr)){
-						callstack.push_back(cptr);
-					}else{
-						int depth = 1;
-						while(depth){
-							cptr++;
-							c = prog[cptr];
-							if(c=='[')
-								depth++;
-							if(c==']')
-								depth--;
-						}	
-					}
-				break;
-				case ']':
-					if(callstack.empty())
-						throw std::logic_error("Attempt to return with empty call stack");
-					if(get(ptr))
-						cptr = callstack.back();
-					else
-						callstack.pop_back();
-				break;
-				case '&':
-					ptr = get(ptr);
-				break;
-				case '@': // call
+template <class T>
+void _BFEngine<T>::process(const char *prog){
+	cptr = 0;
+	T o;
+	unsigned char in;
+	while(prog[cptr]){ // Run until \0
+		char c = prog[cptr];
+		switch(c){
+			case '>':
+				ptr++;
+			break;
+			case '<':
+				ptr--;
+			break;
+			case '+':
+				set(ptr, get(ptr)+1);
+			break;
+			case '-':
+				set(ptr, get(ptr)-1);
+			break;
+			case '.':
+				o = get(ptr);
+				std::cout << *reinterpret_cast<char*>(&o);
+			break;
+			case ',':
+				std::cin >> in;
+				set(ptr, static_cast<T>(in));
+			break;
+			case '[':
+				if(get(ptr)){
 					callstack.push_back(cptr);
-					cptr = get(ptr);
-				break;
-				case '$': // ret
+				}else{
+					int depth = 1;
+					while(depth){
+						cptr++;
+						c = prog[cptr];
+						if(c=='[')
+							depth++;
+						if(c==']')
+							depth--;
+					}	
+				}
+			break;
+			case ']':
+				if(callstack.empty())
+					throw std::logic_error("Attempt to pop empty call stack");
+				if(get(ptr))
 					cptr = callstack.back();
-					callstack.pop_back();
-				break;
-				case 'D': // debug
-					std::cout << "\nPtr: " << ptr << "\nCPtr: " << cptr << "\nCall stack size: " << callstack.size() << "\n\n";
-				break;
-			}
-			cptr++;
+				else
+					pop();//callstack.pop_back();
+			break;
+			case '&': // goto
+				ptr = get(ptr);
+			break;
+			case '@': // call
+				callstack.push_back(cptr);
+				cptr = get(ptr);
+			break;
+			case '$': // ret
+				cptr = pop();//callstack.back();
+				//callstack.pop_back();
+			break;
+			case '^': // pop
+				pop();//callstack.pop_back();
+			break;
+			case 'D': // debug
+				std::cout << "\nPtr: " << ptr << "\nCPtr: " << cptr << "\nCall stack size: " << callstack.size() << "\n\n";
+				printMemBlocks();
+			break;
+		}
+		cptr++;
+	}
+}
+
+template <class T>
+T _BFEngine<T>::pop(){
+	if(callstack.empty())
+		throw std::logic_error("Attempt to pop empty call stack");
+	T back = callstack.back();
+	callstack.pop_back();
+	return back;
+}
+
+template <class T>
+void _BFEngine<T>::printMemBlocks()const{
+	std::cout << "Allocated blocks:";
+	printTree(head, static_cast<T>(0));
+}
+
+template <class T>
+void printTree(MemoryTree<T> *tree, T addr){
+	T newaddr = addr<<1;
+	if(tree->left)
+		printTree(tree->left, newaddr);
+	if(tree->right)
+		printTree(tree->right, ++newaddr);
+	if(tree->data)
+		std::cout << " #" << static_cast<unsigned long long int>(addr);
+}
+
+// Allocate new block at position bp
+template <class T>
+MemoryTree<T>* _BFEngine<T>::allocate(T bp){
+	T mask = 1;
+	int shift = size*8-blocksize-1;
+	if(shift<0)
+		mask = 0;
+	else
+		mask <<= shift;
+	MemoryTree<T>* tree = head;
+	for(; mask; mask>>=1){
+		if(bp & mask){
+			if(tree->right==nullptr)
+				tree->right = new MemoryTree<T>();
+			tree = tree->right;
+		}else{
+			if(tree->left==nullptr)
+				tree->left = new MemoryTree<T>();
+			tree = tree->left;
 		}
 	}
+	tree->data = new T[1<<blocksize];
+	cacheValid = true;
+	cachePoint = bp;
+	cache = tree;
+	return tree;
+}
 
-	// Allocate new block at position bp
-	template <class T>
-	MemoryTree<T>* _BFEngine<T>::allocate(T bp){
-		T mask = 1;
-		int shift = size*8-blocksize-1;
-		if(shift<0)
-			mask = 0;
-		else
-			mask <<= shift;
-		MemoryTree<T>* tree = head;
-		for(; mask; mask>>=1){
-			if(bp & mask){
-				if(tree->right==nullptr)
-					tree->right = new MemoryTree<T>();
-				tree = tree->right;
-			}else{
-				if(tree->left==nullptr)
-					tree->left = new MemoryTree<T>();
-				tree = tree->left;
-			}
-		}
-		tree->data = new T[1<<blocksize];
-		cacheValid = true;
-		cachePoint = bp;
-		cache = tree;
-		return tree;
-	}
-
-	template <class T>
+template <class T>
 T _BFEngine<T>::get(T addr){
 	MemoryTree<T>* block = getBlock(addr>>blocksize);
 	if(block==nullptr)

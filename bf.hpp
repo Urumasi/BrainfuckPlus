@@ -14,16 +14,22 @@ template <class T>
 void deleteTree(MemoryTree<T>*);
 
 template <class T>
+void printTree(MemoryTree<T>*, T);
+
+template <class T>
 class _BFEngine{
 public:
 	_BFEngine(int);
 	~_BFEngine();
 	void process(const char*);
 private:
+    T pop();
+
 	MemoryTree<T>* allocate(T);
 	T get(T);
 	void set(T, T);
 	MemoryTree<T>* getBlock(T);
+	void printMemBlocks()const;
 
 	MemoryTree<T>* head;
 	bool cacheValid;
@@ -32,7 +38,7 @@ private:
 	T ptr;
 	int size;
 	int blocksize;
-	int cptr;
+	unsigned long long int cptr;
 	std::vector<T> callstack;
 };
 
