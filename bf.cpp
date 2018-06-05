@@ -31,11 +31,11 @@ _BFEngine<T>::~_BFEngine(){
 }
 
 template <class T>
-void _BFEngine<T>::process(const char *prog){
+void _BFEngine<T>::process(const char *prog, int len){
 	cptr = 0;
 	T o;
 	unsigned char in;
-	while(prog[cptr]){ // Run until \0
+	while(cptr<=len){
 		char c = prog[cptr];
 		switch(c){
 			case '>':
@@ -65,6 +65,8 @@ void _BFEngine<T>::process(const char *prog){
 					int depth = 1;
 					while(depth){
 						cptr++;
+						if(cptr>len)
+							throw std::logic_error("Unmatched [");
 						c = prog[cptr];
 						if(c=='[')
 							depth++;
@@ -254,19 +256,19 @@ BFEngine::~BFEngine(){
 	}
 }
 
-void BFEngine::process(const char *c){
+void BFEngine::process(const char *c, int l){
 	switch(arch){
 		case 1:
-			e8->process(c);
+			e8->process(c, l);
 		break;
 		case 2:
-			e16->process(c);
+			e16->process(c, l);
 		break;
 		case 4:
-			e32->process(c);
+			e32->process(c, l);
 		break;
 		case 8:
-			e64->process(c);
+			e64->process(c, l);
 		break;
 	}
 }

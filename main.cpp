@@ -19,7 +19,7 @@ int main(int argc, char* argv[]){
 	try{
 		BFEngine *engine = new BFEngine(arch, 8); // 256 cells per block
 		std::string str(std::istreambuf_iterator<char>(std::cin), {});
-		engine->process(str.c_str());
+		engine->process(str.c_str(), str.length());
 		delete engine;
 	}catch(std::logic_error e){
 		std::cerr << e.what() << std::endl;

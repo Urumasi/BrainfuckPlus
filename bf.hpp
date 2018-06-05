@@ -21,7 +21,7 @@ class _BFEngine{
 public:
 	_BFEngine(int);
 	~_BFEngine();
-	void process(const char*);
+	void process(const char*, int);
 private:
     T pop();
 
@@ -47,7 +47,7 @@ class BFEngine{
 public:
 	BFEngine(int, int);
 	~BFEngine();
-	void process(const char*);
+	void process(const char*, int);
 private:
 	_BFEngine<unsigned char> *e8;
 	_BFEngine<unsigned short int> *e16;
